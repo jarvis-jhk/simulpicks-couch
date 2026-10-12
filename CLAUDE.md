@@ -36,6 +36,13 @@ user, and real tests need his hardware.
   diagnostics plugin (not built in CI).
 - `ROADMAP.md` the plan, `NOTES.md` running state and evidence. Read NOTES before working.
 
+## Reverse engineering
+
+REA (`rea inspect-managed-members`, static .NET metadata + IL, no decompiler) maps which mod code
+touches a game member; `tools/rea-scan.py` queries its output. Read `docs/research/rea.md` first:
+what it can and cannot do, and findings so far. Output stays outside the repo; only findings in
+our own words get committed. It is not a stub checker — that stays `tools/refcheck`.
+
 ## Build
 
 `tools/check.sh` (needs a .NET 8 SDK; no game). On a machine with ROUNDS the csproj uses the

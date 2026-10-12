@@ -2,6 +2,16 @@
 
 Running state and evidence. Newest first.
 
+## 2026-10-12 — REA
+
+- REA (rea-agents 6.4.0, installed in JARVIS's toolchain) runs on all witness DLLs except
+  MMHOOK (fixed 64 MiB metadata budget). Usage, limits and findings: docs/research/rea.md.
+- Finding: RoundsWithFriends' local character select reads each player's own
+  `data.playerActions.Jump`/`Move` and builds per-device action sets — the COUCH input question
+  is no longer blocking M1. NullManager, ModdingUtils and PickPhaseShenanigans read
+  `CardChoice.instance.pickrID` as the single picker: M2 compatibility risk.
+- Not usable as a stub checker (build-local type coordinates, unresolved TypeRefs); refcheck stays.
+
 ## 2026-10-12 — fork set up, M0
 
 - Fork of RedRedRain/EveryonePicks (full history, upstream 0.3.37 dev), remote `upstream`.

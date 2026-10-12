@@ -73,7 +73,11 @@ results and session-done broadcasts are per player exactly as today.
 ## Open questions (need the game to answer)
 
 - Which `PlayerActions` member the vanilla picker uses to confirm (Jump vs. Fire) and how
-  `CardChoice.Update` reads movement — read from the game on a machine that has it.
+  `CardChoice.Update` reads movement — read from the game on a machine that has it. No longer
+  blocking: RoundsWithFriends' local character select reads each player's own
+  `playerActions.Jump`/`Move` the same way the board plans to (docs/research/rea.md).
+- Mods that read `CardChoice.instance.pickrID` as "the" picker (NullManager, ModdingUtils,
+  PickPhaseShenanigans) while several players pick at once — M2 compatibility (same doc).
 - Whether `ApplyCardStats.Pick` outside a native session needs `CardChoice` state (pickrID,
   `IsPicking`) set, and whether vanilla card animations (`CardVisuals`, `RPCA_ChangeSelected`)
   behave at a non-default scale.
