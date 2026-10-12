@@ -12,5 +12,9 @@ Running state and evidence. Newest first.
 - A Release DLL built against stubs has not been loaded into the game yet. Until a
   `tools/check.sh <Managed dir>` run on a real install, treat it as unverified.
 - `diag/` (upstream's dev diagnostics plugin) is not built in CI.
-- Asked the laptop (gateway) whether ROUNDS is installed there; answer pending.
+- CI run 38292012929 on 74efeeb: green (Release+Debug build, refcheck 0 unproven, DLL artifact).
+- ROUNDS is NOT on the laptop: no ~/.local/share/Steam there (gateway listing, approved by Jan,
+  2026-10-12). Hardware tests and the authoritative real-DLL refcheck need the Deck (not a gateway
+  target) or a Steam install; ask Jan when the prototype is ready.
+- Weekly work session schedule e0884068 (Thu 03:30 UTC).
 - Next: M1 per docs/COUCH.md. The open questions in it need the game's CardChoice code.
