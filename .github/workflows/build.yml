@@ -1,0 +1,31 @@
+name: Build
+
+# Builds without ROUNDS: the game's assemblies are replaced by the reference stubs in refs/, and
+# tools/refcheck proves every game member the DLL uses against assemblies built on the real game.
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Cache Thunderstore and NuGet downloads
+        uses: actions/cache@v4
+        with:
+          path: |
+            deps/.zips
+            ~/.nuget/packages
+          key: deps-${{ hashFiles('tools/fetch-deps.sh', '**/*.csproj', 'refs/Directory.Build.props') }}
+      - name: Build and check references
+        run: tools/check.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: EveryonePicks-${{ github.sha }}
+          path: src/bin/Release/EveryonePicks.dll
+          if-no-files-found: error

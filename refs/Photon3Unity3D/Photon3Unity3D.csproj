@@ -1,0 +1,3 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><AssemblyName>Photon3Unity3D</AssemblyName><AssemblyVersion>4.1.4.8</AssemblyVersion></PropertyGroup>
+</Project>

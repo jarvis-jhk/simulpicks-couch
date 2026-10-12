@@ -31,3 +31,7 @@ install-log*.txt
 AUDIT-confirmed.md
 capture.ps1
 install-on-exit.ps1
+
+# Fetched dependencies and witnesses (tools/fetch-deps.sh) and local build output
+deps/
+build/

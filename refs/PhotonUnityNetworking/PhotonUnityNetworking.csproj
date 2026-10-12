@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><AssemblyName>PhotonUnityNetworking</AssemblyName><AssemblyVersion>0.0.0.0</AssemblyVersion></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../PhotonRealtime/PhotonRealtime.csproj" />
+    <ProjectReference Include="../Photon3Unity3D/Photon3Unity3D.csproj" />
+  </ItemGroup>
+</Project>

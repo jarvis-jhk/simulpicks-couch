@@ -31,7 +31,15 @@
     <Profile Condition="'$(Profile)' == ''">$(AppData)\Thunderstore Mod Manager\DataFolder\ROUNDS\profiles\Default</Profile>
   </PropertyGroup>
 
-  <ItemGroup>
+  <!-- Without the game installed (CI, or a machine without ROUNDS) the game's own assemblies are
+       replaced by the reference stubs in refs/ and the Unity modules package, and the mod-side
+       DLLs come from deps/ (tools/fetch-deps.sh). Force either way with -p:UseRefStubs=true|false. -->
+  <PropertyGroup>
+    <UseRefStubs Condition="'$(UseRefStubs)' == '' and !Exists('$(GameManaged)\Assembly-CSharp.dll')">true</UseRefStubs>
+    <Profile Condition="'$(UseRefStubs)' == 'true' and !Exists('$(Profile)\BepInEx\core\BepInEx.dll')">$(MSBuildThisFileDirectory)..\deps</Profile>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(UseRefStubs)' != 'true'">
     <Reference Include="Assembly-CSharp"><HintPath>$(GameManaged)\Assembly-CSharp.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine"><HintPath>$(GameManaged)\UnityEngine.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine.CoreModule"><HintPath>$(GameManaged)\UnityEngine.CoreModule.dll</HintPath><Private>false</Private></Reference>
@@ -45,7 +53,19 @@
     <Reference Include="PhotonUnityNetworking"><HintPath>$(GameManaged)\PhotonUnityNetworking.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="PhotonRealtime"><HintPath>$(GameManaged)\PhotonRealtime.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="Unity.TextMeshPro"><HintPath>$(GameManaged)\Unity.TextMeshPro.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
 
+  <ItemGroup Condition="'$(UseRefStubs)' == 'true'">
+    <PackageReference Include="UnityEngine.Modules" Version="2018.4.34" IncludeAssets="compile" PrivateAssets="all" />
+    <ProjectReference Include="..\refs\Assembly-CSharp\Assembly-CSharp.csproj" Private="false" />
+    <ProjectReference Include="..\refs\PhotonUnityNetworking\PhotonUnityNetworking.csproj" Private="false" />
+    <ProjectReference Include="..\refs\PhotonRealtime\PhotonRealtime.csproj" Private="false" />
+    <ProjectReference Include="..\refs\Photon3Unity3D\Photon3Unity3D.csproj" Private="false" />
+    <ProjectReference Include="..\refs\UnityEngine.UI\UnityEngine.UI.csproj" Private="false" />
+    <ProjectReference Include="..\refs\Unity.TextMeshPro\Unity.TextMeshPro.csproj" Private="false" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="BepInEx"><HintPath>$(Profile)\BepInEx\core\BepInEx.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="0Harmony"><HintPath>$(Profile)\BepInEx\core\0Harmony.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnboundLib"><HintPath>$(Profile)\BepInEx\plugins\willis81808-UnboundLib\UnboundLib.dll</HintPath><Private>false</Private></Reference>

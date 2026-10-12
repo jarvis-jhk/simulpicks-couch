@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><AssemblyName>Unity.TextMeshPro</AssemblyName><AssemblyVersion>0.0.0.0</AssemblyVersion></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../UnityEngine.UI/UnityEngine.UI.csproj" />
+  </ItemGroup>
+</Project>

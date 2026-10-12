@@ -1,0 +1,3 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><AssemblyName>UnityEngine.UI</AssemblyName><AssemblyVersion>1.0.0.0</AssemblyVersion></PropertyGroup>
+</Project>

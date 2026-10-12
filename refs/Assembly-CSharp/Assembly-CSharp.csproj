@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><AssemblyName>Assembly-CSharp</AssemblyName><AssemblyVersion>0.0.0.0</AssemblyVersion></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../PhotonUnityNetworking/PhotonUnityNetworking.csproj" />
+    <ProjectReference Include="../PhotonRealtime/PhotonRealtime.csproj" />
+    <ProjectReference Include="../Photon3Unity3D/Photon3Unity3D.csproj" />
+    <ProjectReference Include="../UnityEngine.UI/UnityEngine.UI.csproj" />
+    <ProjectReference Include="../Unity.TextMeshPro/Unity.TextMeshPro.csproj" />
+    <ProjectReference Include="../InControl/InControl.csproj" />
+  </ItemGroup>
+</Project>

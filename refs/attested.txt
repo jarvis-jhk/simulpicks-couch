@@ -1,0 +1,5 @@
+# Game members the mod uses that no witness assembly references, each with the reason we believe
+# it exists. tools/refcheck reports these as attested rather than proven; keep this list short and
+# empty it whenever a check against the real game (tools/check.sh <Managed dir>) has passed.
+#
+# Format: the exact key refcheck prints after UNPROVEN, then "  # reason".

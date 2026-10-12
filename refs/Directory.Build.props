@@ -1,0 +1,17 @@
+<Project>
+  <!-- Reference stubs: our own source, declaring only the game API this mod compiles against.
+       Every body is `throw null`; the real game assembly replaces them at runtime. See README.md. -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <Nullable>disable</Nullable>
+    <NoWarn>$(NoWarn);CS0067;CS0649;CS0169;CS0626;CS8618;CS0114;CS0108</NoWarn>
+    <DebugType>none</DebugType>
+    <RootNamespace></RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="UnityEngine.Modules" Version="2018.4.34" IncludeAssets="compile" PrivateAssets="all" />
+  </ItemGroup>
+</Project>

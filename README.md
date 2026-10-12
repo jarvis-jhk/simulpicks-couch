@@ -1,4 +1,8 @@
-# EveryonePicks
+# EveryonePicks — couch fork
+
+> This fork adds **couch mode**: several players on one PC or Steam Deck pick their cards at the
+> same time, each on their own part of the screen. Work in progress, see [ROADMAP.md](ROADMAP.md).
+> The original mod is [RedRedRain/EveryonePicks](https://github.com/RedRedRain/EveryonePicks).
 
 A ROUNDS mod. Everyone picks their card at the same time instead of taking turns.
 
@@ -29,6 +33,10 @@ A ROUNDS mod. Everyone picks their card at the same time instead of taking turns
 cd src
 dotnet build -c Release -p:EpDebug=false
 ```
+
+Without ROUNDS installed (CI, Linux), `tools/check.sh` fetches the dependencies, builds against
+the reference stubs in `refs/` and checks every game member the DLL uses; see
+[refs/README.md](refs/README.md).
 
 Drop `EpDebug=false` for a dev build with F10 bound to a fake reveal, handy for working on the
 visuals without a lobby.
