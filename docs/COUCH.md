@@ -1,6 +1,6 @@
 # Couch mode: design (M1)
 
-Status: design only. Nothing here has run in the game yet.
+Status: design plus a unit-tested pure core (below). Nothing here has run in the game yet.
 
 ## Where SimulPicks serialises local players
 
@@ -70,15 +70,54 @@ sequential runner. Logged as a fallback, not an error.
 Nothing changes on the wire. Each machine's board covers only its own local players; status,
 results and session-done broadcasts are per player exactly as today.
 
+## Pure core (implemented, unit-tested)
+
+`src/Couch/` holds the parts with no Unity or game types, tested by `tests/CouchTests` (run by
+`tools/check.sh` and CI). Not wired into the pick flow yet.
+
+- `CouchLayout`: grid per lane count, lane regions in normalised screen space (row-major, player
+  order), one centred card row per region with a name strip, and the scale relative to a
+  full-screen hand (2×2, hand of five ≈ 0.5). Normalised coordinates convert to world space the
+  way PickNCards places its slots (`ScreenToWorldPoint`, z = -5), see research below.
+- `CouchPlan.Split`: which queued entries the board takes (first entry of each distinct
+  `PickerType.Player` player, up to nine) and which stay sequential; fewer than two → native.
+- `LaneCursor`: per-lane selection from Move X: deadzone 0.5, move on push, repeat after
+  0.35 s every 0.12 s, wraps; a long frame delivers every owed repeat.
+
+## Findings from public mod sources (2026-10-15)
+
+Mod code only, never game code; links pinned to commits in `docs/research/mods.md`.
+
+- **Hand size** is the length of the private `Transform[] children` on `CardChoice`, the slot
+  transforms under the CardChoice GameObject (UnboundLib fills it in `Start`; PickNCards
+  resizes it in a `StartPick` prefix by cloning `children[0]`). The board reads that length.
+- **Positions** are those slot transforms in world space; PickNCards computes them in normalised
+  screen units through the main camera's `ScreenToWorldPoint` at z = -5 and sets scale in a
+  `Spawn` postfix (vanilla does not sync card scale). That answers the camera question: lay out
+  in normalised space, convert through `MainCam`.
+- **The picker is global state at spawn time.** CardChoiceSpawnUniqueCardPatch reads
+  `pickerType` and `pickrID` (and indexes `PlayerManager.players` by `pickrID`) and checks
+  duplicates against `spawnedCards`; ModdingUtils' `PickingPlayer` helper does the same. So per
+  card spawn the board must swap in the lane's `pickrID`, `pickerType` **and `spawnedCards`**
+  list, then restore — not just `pickrID` as planned above.
+- **Applying a pick**: vanilla-like `CardChoice.Pick(GameObject, bool)` calls
+  `ApplyCardStats.Pick(pickrID, false, pickerType)` and then `RPCA_DoEndPick(int[], int, int, int)`;
+  every spawned card carries a `PublicInt.theInt` slot index. RoundsWithFriends transpiles
+  `ApplyCardStats.Pick` to key on a per-player id instead of the Photon actor, so several local
+  players on one actor already work there; the board must call `Pick` per card, not
+  bypass it. ModdingUtils' `AddCardToPlayer` applies cards with no `CardChoice` state at all
+  (private `ApplyStats` + `SilentAddToCardBar`), a fallback if `Pick` needs session state.
+- **`CardChoiceVisuals`** (the hands) is one shared instance following one selected card; the
+  board cannot use it per lane and draws its own selection highlight instead.
+
 ## Open questions (need the game to answer)
 
-- Which `PlayerActions` member the vanilla picker uses to confirm (Jump vs. Fire) and how
-  `CardChoice.Update` reads movement — read from the game on a machine that has it. No longer
-  blocking: RoundsWithFriends' local character select reads each player's own
-  `playerActions.Jump`/`Move` the same way the board plans to (docs/research/rea.md).
-- Mods that read `CardChoice.instance.pickrID` as "the" picker (NullManager, ModdingUtils,
-  PickPhaseShenanigans) while several players pick at once — M2 compatibility (same doc).
-- Whether `ApplyCardStats.Pick` outside a native session needs `CardChoice` state (pickrID,
-  `IsPicking`) set, and whether vanilla card animations (`CardVisuals`, `RPCA_ChangeSelected`)
-  behave at a non-default scale.
-- Camera: cards are world objects; the board must place them in the pick camera's view.
+- Which `PlayerActions` member the vanilla picker uses to confirm (Jump vs. Fire). No public mod
+  patches `CardChoice.Update`, so mod sources cannot answer it. Not blocking: the board uses
+  Jump/Move like RoundsWithFriends' local character select (docs/research/rea.md).
+- Mods that read `CardChoice.instance.pickrID` as "the" picker outside a spawn
+  (PickPhaseShenanigans' `pickrID && IsPicking` check) while several players pick at once — M2.
+- Whether `ApplyCardStats.Pick` outside a native session needs `IsPicking` set, and whether card
+  animations (`CardVisuals`, `RPCA_ChangeSelected`) behave at ~0.5 scale. Hardware test.
+- Member names may differ on current game builds (1.1.2 renamed some); the real-DLL
+  `tools/check.sh <Managed dir>` run settles each one the board uses.

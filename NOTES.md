@@ -2,6 +2,24 @@
 
 Running state and evidence. Newest first.
 
+## 2026-10-15 — M1 slice 1: couch core + mod-source research
+
+- `src/Couch/` (CouchLayout, CouchPlan, LaneCursor): pure logic, no Unity types, not wired into
+  the pick flow yet. `tests/CouchTests` (net8 console, 655 checks) runs in `tools/check.sh`.
+  Negative control: queue threshold 2→1 and dropping repeat steps made 7 checks fail; restored.
+- check.sh locally: tests 655/0, refcheck Release 77/77, Debug 78/78, 0 unproven.
+  CI run 38676841252 on fd474be green; log shows the same counts.
+- Research from public mod sources (docs/research/mods.md, conclusions in docs/COUCH.md):
+  hand size = `CardChoice.children` length; slots placed through `ScreenToWorldPoint` z -5;
+  the spawn-time picker is `pickrID` + `pickerType` + `spawnedCards` (duplicate checks), so all
+  three must be swapped per lane; RWF already makes `ApplyCardStats.Pick` per local player;
+  `CardChoiceVisuals` is single, so lanes draw their own highlight. Jump vs Fire stays open
+  (no public mod patches `CardChoice.Update`).
+- Next slice: `CouchBoard` MonoBehaviour behind a `CouchMode` config (default off until a
+  hardware test), using the core: spawn per lane with swapped CardChoice state, per-lane capture
+  in `Patch_Pick_Capture`, `ReportSession` per lane. New game members need refcheck witnesses.
+- No hardware run; nothing here has been in the game.
+
 ## 2026-10-12 — REA
 
 - REA (rea-agents 6.4.0, installed in JARVIS's toolchain) runs on all witness DLLs except

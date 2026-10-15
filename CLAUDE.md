@@ -31,7 +31,8 @@ user, and real tests need his hardware.
 ## Layout
 
 - `src/` the mod (upstream code plus couch mode). `State.cs` is the pick orchestration,
-  `Patches.cs` the CardChoice interceptions.
+  `Patches.cs` the CardChoice interceptions. `src/Couch/` the couch board's
+  pure logic, unit-tested by `tests/CouchTests`.
 - `refs/` reference stubs, `tools/` fetch-deps, check, refcheck. `diag/` upstream's dev
   diagnostics plugin (not built in CI).
 - `ROADMAP.md` the plan, `NOTES.md` running state and evidence. Read NOTES before working.
