@@ -12,6 +12,7 @@ tools/fetch-deps.sh
 dotnet build src -c Release -p:EpDebug=false -p:UseRefStubs=true --nologo -v:q
 dotnet build src -c Debug -p:UseRefStubs=true -o build/debug --nologo -v:q
 dotnet build tools/refcheck -c Release -o build/refcheck --nologo -v:q
+dotnet run --project tests/CouchTests -c Release --nologo
 
 for dll in src/bin/Release/EveryonePicks.dll build/debug/EveryonePicks.dll; do
   echo "refcheck $dll"
