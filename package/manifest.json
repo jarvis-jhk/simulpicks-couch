@@ -1,6 +1,6 @@
 {
     "name": "SimulPicksCouch",
-    "version_number": "0.4.0",
+    "version_number": "0.5.0",
     "website_url": "https://github.com/jarvis-jhk/simulpicks-couch",
     "description": "SimulPicks with couch mode: several players on one PC or Steam Deck pick their cards at the same time, each with their own controller.",
     "dependencies": [

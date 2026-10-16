@@ -24,7 +24,9 @@ more local players owe a pick at the same time:
 ## M2 — robust
 
 - Extra picks (devil cards, Pick N Cards, MorePicksPatch) add another row in that player's region.
-- Fallback to sequential for card mods that open their own `CardChoice` (detected, logged).
+- ✅ v0.5.0 (CI only): fallback for card mods that open their own `CardChoice` (board waits /
+  takes turns, logged), `Couch.SequentialWith` opt-out, pick hooks logged, throwing mod hooks
+  end one lane's pick instead of the round, picker swapped for pick hooks. Game test by Jan.
 - Common mod packs: ClassesManagerReborn, WillsWackyManagers, NullManager, RoundsWithFriends
   with online + couch mixes.
 - Fault relay: unhandled exceptions in the couch board reported anonymously (no names/IDs).

@@ -22,7 +22,7 @@ namespace EveryonePicks
     {
         public const string ModId = "com.redredrain.rounds.simulpicks";
         public const string ModName = "EveryonePicks";
-        public const string Version = "0.4.0";
+        public const string Version = "0.5.0";
 
         public static EveryonePicksPlugin Instance;
 
@@ -36,6 +36,7 @@ namespace EveryonePicks
         public static ConfigEntry<float> RevealCardSize;
         public static ConfigEntry<bool> CouchMode;
         public static ConfigEntry<float> CouchCardScale;
+        public static ConfigEntry<string> CouchSequentialWith;
 
         private void Awake()
         {
@@ -74,6 +75,11 @@ namespace EveryonePicks
 
             CouchCardScale = Config.Bind("Couch", "CouchCardScale", 1.0f,
                 "Size multiplier for the cards in couch mode. Raise it if they look too small.");
+
+            CouchSequentialWith = Config.Bind("Couch", "SequentialWith", "",
+                "Comma-separated plugin GUIDs (or Harmony ids). While any of them is loaded, local " +
+                "players take turns instead of picking at once. For a card mod that does not get " +
+                "along with couch mode; the log lists the mods that hook the pick at the first couch pick.");
 
             new Harmony(ModId).PatchAll();
             PhotonNetwork.AddCallbackTarget(this);

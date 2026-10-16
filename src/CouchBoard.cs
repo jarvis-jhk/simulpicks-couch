@@ -61,18 +61,105 @@ namespace EveryonePicks
 
         internal static bool Active => lanes.Count > 0;
 
-        /// <summary>Whether the game members the board needs are all there; else the runner stays native.</summary>
+        /// <summary>
+        /// Whether the board may run now; else the runner stays native (players take turns).
+        /// Needs its game members, no pick another mod opened itself, and no mod from
+        /// <c>Couch.SequentialWith</c> loaded.
+        /// </summary>
         internal static bool Ready()
         {
             bool ok = M_spawnUnique != null && M_applyPick != null && State.F_pickrID != null
                       && State.F_pickerType != null && State.F_spawnedCards != null
                       && CardChoice.instance != null && MainCam.instance != null && MainCam.instance.cam != null;
-            if (!ok && !warnedUnready)
+            if (!ok)
             {
-                warnedUnready = true;
-                EveryonePicksPlugin.Warn("Couch board unavailable (missing game member or camera); local players take turns.");
+                if (!warnedUnready)
+                {
+                    warnedUnready = true;
+                    EveryonePicksPlugin.Warn("Couch board unavailable (missing game member or camera); local players take turns.");
+                }
+                return false;
             }
-            return ok;
+            LogPickHooksOnce();
+
+            var blocking = ModGate.Blocking(EveryonePicksPlugin.CouchSequentialWith.Value, LoadedIds());
+            if (blocking.Count > 0)
+            {
+                string key = string.Join(",", blocking.ToArray());
+                if (key != warnedBlocking)
+                {
+                    warnedBlocking = key;
+                    EveryonePicksPlugin.Warn("Couch board off: " + key + " is listed in Couch.SequentialWith; local players take turns.");
+                }
+                return false;
+            }
+
+            // A card mod drove CardChoice itself (StartPick without DoPick): that pick owns the
+            // shared hand and the vanilla input, so wait for it in the sequential runner.
+            if (SafeIsPicking())
+            {
+                EveryonePicksPlugin.Warn("Couch board waits: another mod has a pick open; this round's local picks take turns.");
+                return false;
+            }
+            return true;
+        }
+
+        private static string warnedBlocking;
+        private static bool loggedHooks;
+
+        private static bool SafeIsPicking()
+        {
+            try { return CardChoice.instance != null && CardChoice.instance.IsPicking; } catch { return false; }
+        }
+
+        /// <summary>Plugin GUIDs and Harmony owner ids, what Couch.SequentialWith matches against.</summary>
+        private static IEnumerable<string> LoadedIds()
+        {
+            var ids = new List<string>();
+            try { foreach (var kv in BepInEx.Bootstrap.Chainloader.PluginInfos) ids.Add(kv.Key); } catch { }
+            try
+            {
+                foreach (var m in Harmony.GetAllPatchedMethods())
+                {
+                    var info = Harmony.GetPatchInfo(m);
+                    if (info != null) ids.AddRange(info.Owners);
+                }
+            }
+            catch { }
+            return ids;
+        }
+
+        /// <summary>
+        /// Once per game session: which other mods patch the pick (CardChoice, ApplyCardStats).
+        /// When a mod pack misbehaves in couch mode, this line names the suspects and the ids to
+        /// put in Couch.SequentialWith.
+        /// </summary>
+        private static void LogPickHooksOnce()
+        {
+            if (loggedHooks) return;
+            loggedHooks = true;
+            try
+            {
+                var byOwner = new SortedDictionary<string, SortedSet<string>>(StringComparer.OrdinalIgnoreCase);
+                foreach (var m in Harmony.GetAllPatchedMethods())
+                {
+                    var t = m.DeclaringType;
+                    if (t != typeof(CardChoice) && t != typeof(ApplyCardStats)) continue;
+                    var info = Harmony.GetPatchInfo(m);
+                    if (info == null) continue;
+                    foreach (var owner in info.Owners)
+                    {
+                        if (owner.StartsWith(EveryonePicksPlugin.ModId, StringComparison.Ordinal)) continue;
+                        if (!byOwner.TryGetValue(owner, out var set)) byOwner[owner] = set = new SortedSet<string>();
+                        set.Add(t.Name + "." + m.Name);
+                    }
+                }
+                if (byOwner.Count == 0) { EveryonePicksPlugin.Log("Couch board: no other mod hooks the pick."); return; }
+                var parts = new List<string>();
+                foreach (var kv in byOwner) parts.Add(kv.Key + " (" + string.Join(", ", new List<string>(kv.Value).ToArray()) + ")");
+                EveryonePicksPlugin.Log("Couch board: other mods hooking the pick: " + string.Join("; ", parts.ToArray()));
+            }
+            catch (Exception e) { EveryonePicksPlugin.Warn("Could not list pick hooks: " + e.Message); }
         }
 
         /// <summary>A lane is running a session for this player (counts as still owing a pick).</summary>
@@ -93,6 +180,7 @@ namespace EveryonePicks
         {
             token = State.phaseToken;
             lanes.Clear();
+            suspended = false;
             State.localCards.Clear();
             State.currentSessionPlayer = -1;
             State.localPickActive = true;
@@ -100,33 +188,8 @@ namespace EveryonePicks
 
             try
             {
-                for (int i = 0; i < players.Count; i++)
-                {
-                    int pid = players[i];
-                    lanes.Add(new Lane
-                    {
-                        playerID = pid,
-                        player = State.FindPlayer(pid),
-                        region = CouchLayout.Region(i, players.Count),
-                        name = State.DisplayName(pid),
-                        color = State.PlayerColor(pid),
-                    });
-                }
-                foreach (var l in lanes) StartHand(l);
-
-                while (token == State.phaseToken)
-                {
-                    bool anyOpen = false;
-                    foreach (var l in lanes)
-                    {
-                        if (!l.inSession && TakeQueued(l.playerID)) StartHand(l);
-                        if (!l.inSession) continue;
-                        anyOpen = true;
-                        Tick(l);
-                    }
-                    if (!anyOpen) break;
-                    yield return null;
-                }
+                Setup(players);
+                while (token == State.phaseToken && Step()) yield return null;
             }
             finally
             {
@@ -136,6 +199,117 @@ namespace EveryonePicks
                 foreach (var l in lanes) DestroyCards(l);
                 lanes.Clear();
                 State.localPickActive = false;
+            }
+        }
+
+        private static void Setup(List<int> players)
+        {
+            for (int i = 0; i < players.Count; i++)
+            {
+                int pid = players[i];
+                // Every player taken off the queue gets a lane, even one whose details fail to
+                // resolve: a lane is what reports the session the barrier waits for.
+                var l = new Lane { playerID = pid, region = CouchLayout.Region(i, players.Count), name = "Player " + (pid + 1), color = Color.white };
+                try
+                {
+                    l.player = State.FindPlayer(pid);
+                    l.name = State.DisplayName(pid);
+                    l.color = State.PlayerColor(pid);
+                }
+                catch (Exception e) { Fault("Couch lane for player " + pid + " incomplete", e); }
+                lanes.Add(l);
+            }
+            foreach (var l in lanes) Guarded(l, StartHand);
+        }
+
+        /// <summary>One frame of the board; false when every lane is done. Never throws.</summary>
+        private static bool Step()
+        {
+            try { return StepLanes(); }
+            catch (Exception e)
+            {
+                // Not one lane's hook but the board itself: report what each lane has, so the
+                // barrier gets every player's session instead of waiting out its budget.
+                Fault("Couch board failed", e);
+                ReportOpenLanes(token);
+                return false;
+            }
+        }
+
+        private static bool StepLanes()
+        {
+            // Another mod opened its own pick on top of the board (StartPick without DoPick): it
+            // owns the vanilla hand and input now. Freeze the lanes, hide their cards and hold
+            // their clocks until it closes, then carry on.
+            bool foreign = SafeIsPicking();
+            if (foreign != suspended)
+            {
+                suspended = foreign;
+                if (foreign) EveryonePicksPlugin.Warn("Another mod opened a pick during the couch board; couch picks wait for it.");
+                foreach (var l in lanes) SetCardsVisible(l, !foreign);
+            }
+
+            bool anyOpen = false;
+            foreach (var l in lanes)
+            {
+                if (!suspended && !l.inSession && TakeQueued(l.playerID)) Guarded(l, StartHand);
+                if (!l.inSession) continue;
+                anyOpen = true;
+                if (suspended) { Hold(l, Time.unscaledDeltaTime); continue; }
+                Guarded(l, Tick);
+            }
+            return anyOpen;
+        }
+
+        private static bool suspended;
+
+        private static void Hold(Lane l, float dt)
+        {
+            l.deadline += dt;
+            l.inputFrom = Mathf.Max(l.inputFrom, Time.realtimeSinceStartup + InputGrace);
+            l.settleUntil += dt;
+        }
+
+        /// <summary>
+        /// Runs one lane step; a throw (usually another mod's hook on spawn or pick) ends only
+        /// that lane's pick, reported with what it had, instead of killing the board and leaving
+        /// every lane's session unreported until the barrier gives up.
+        /// </summary>
+        private static void Guarded(Lane l, Action<Lane> step)
+        {
+            try { step(l); }
+            catch (Exception e)
+            {
+                Fault("Couch pick for player " + l.playerID + " failed", e);
+                if (!l.inSession) return;
+                try { Finish(l); }
+                catch (Exception e2) { Fault("Reporting player " + l.playerID + "'s couch pick failed", e2); l.inSession = false; }
+            }
+        }
+
+        private static void Fault(string what, Exception e)
+        {
+            var inner = e is TargetInvocationException && e.InnerException != null ? e.InnerException : e;
+            EveryonePicksPlugin.Warn(what + ": " + inner.GetType().Name + ": " + inner.Message + "\n" + inner.StackTrace);
+        }
+
+        private static void ReportOpenLanes(int t)
+        {
+            foreach (var l in lanes)
+            {
+                if (!l.inSession) continue;
+                l.inSession = false;
+                try { DestroyCards(l); } catch { }
+                try { State.ReportSession(t, l.playerID, l.baseIdx, new List<ResultEntry>(l.picks)); }
+                catch (Exception e) { Fault("Reporting player " + l.playerID + "'s couch pick failed", e); }
+            }
+        }
+
+        private static void SetCardsVisible(Lane l, bool on)
+        {
+            foreach (var go in l.cards)
+            {
+                try { if (go != null) go.SetActive(on); } catch { }
             }
         }
 
@@ -285,14 +459,34 @@ namespace EveryonePicks
 
             // The vanilla pick does exactly this for the picker; Patch_Pick_Capture records it into
             // this lane, and the redirected RPCA_Pick applies it on this machine.
+            // Pick hooks (class managers, curse handlers, ModdingUtils' PickingPlayer) read the
+            // picker from CardChoice as at spawn, so the lane's player is swapped in here too.
+            var choice = CardChoice.instance;
+            object oldID = null, oldType = null;
+            bool swapped = false;
             try
             {
+                if (choice != null)
+                {
+                    oldID = State.F_pickrID.GetValue(choice);
+                    oldType = State.F_pickerType.GetValue(choice);
+                    State.F_pickrID.SetValue(choice, l.playerID);
+                    State.F_pickerType.SetValue(choice, PickerType.Player);
+                    swapped = true;
+                }
                 var stats = card.GetComponentInChildren<ApplyCardStats>();
                 if (stats != null) M_applyPick.Invoke(stats, new object[] { l.playerID, false, PickerType.Player });
             }
             catch (Exception e)
             {
-                EveryonePicksPlugin.Warn("Couch pick for player " + l.playerID + " failed: " + (e.InnerException?.Message ?? e.Message));
+                Fault("Couch pick for player " + l.playerID + " failed", e);
+            }
+            finally
+            {
+                if (swapped)
+                {
+                    try { State.F_pickrID.SetValue(choice, oldID); State.F_pickerType.SetValue(choice, oldType); } catch { }
+                }
             }
 
             // Everything but the picked card goes at once, so the lane visibly answers the press.

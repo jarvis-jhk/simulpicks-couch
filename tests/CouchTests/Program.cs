@@ -23,6 +23,7 @@ internal static class Program
         CardRows();
         Plan();
         Cursor();
+        Gate();
         Console.WriteLine(checks + " checks, " + failures + " failed");
         return failures;
     }
@@ -153,5 +154,18 @@ internal static class Program
         bool threw = false;
         try { new LaneCursor(0); } catch (ArgumentOutOfRangeException) { threw = true; }
         Check(threw, "empty hand rejected");
+    }
+
+    private static void Gate()
+    {
+        Check(ModGate.Parse(null).Count == 0 && ModGate.Parse(" , ;").Count == 0, "empty list parses to nothing");
+        Check(ModGate.Parse(" a.b ; c,A.B ").SequenceEqual(new[] { "a.b", "c" }), "trimmed, both separators, duplicates once");
+        var loaded = new[] { "com.willuwontu.rounds.managers", "pykess.rounds.plugins.pickncards", null, "" };
+        Check(ModGate.Blocking("", loaded).Count == 0, "nothing listed blocks nothing");
+        Check(ModGate.Blocking("PYKESS.rounds.plugins.pickncards", loaded).SequenceEqual(new[] { "PYKESS.rounds.plugins.pickncards" }),
+              "case-insensitive match");
+        Check(ModGate.Blocking("pykess.rounds.plugins", loaded).Count == 0, "no prefix match");
+        Check(ModGate.Blocking("not.loaded, com.willuwontu.rounds.managers", loaded).SequenceEqual(new[] { "com.willuwontu.rounds.managers" }),
+              "only loaded ids block");
     }
 }

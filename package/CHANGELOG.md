@@ -1,3 +1,16 @@
+v0.5.0
+---
+
+- Couch mode with card mod packs: if a mod opens its own pick while the couch board runs, the
+  couch picks pause (cards hidden, timers held) until it closes; if one is already open, that
+  round's local picks take turns. A mod hook that throws ends only that player's pick, with what
+  they had, instead of leaving the round stuck.
+- Mods hooking a pick now see the player who is picking (CardChoice's picker is set for each
+  couch pick, as it already was when the cards were dealt).
+- New config `Couch.SequentialWith`: plugin GUIDs that switch couch mode off while loaded. The
+  log names every other mod that hooks the pick at the first couch pick.
+- Still not tested in the game.
+
 v0.4.0
 ---
 

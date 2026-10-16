@@ -101,6 +101,20 @@ Where the implementation settled what the design above left open:
   `CardVisuals.ChangeSelected`. Reflection only (MMHOOK proves they exist, not that they are
   public): `SpawnUniqueCard`, `ApplyCardStats.Pick`, `children`.
 
+### Mod packs (v0.5.0)
+
+- `Ready()` also declines when `CardChoice.IsPicking` is already true (a mod's own pick is open)
+  or a loaded plugin GUID / Harmony owner is listed in `Couch.SequentialWith` (`ModGate`, exact,
+  case-insensitive). Declining means that round's local picks run sequentially as in SimulPicks.
+- While the board runs, `IsPicking` turning true means a mod called `StartPick` itself; the lanes
+  freeze (cards inactive, deadlines and settle pushed, input grace renewed) until it is false.
+- Every lane step runs guarded: an exception (typically another mod's spawn or pick hook) ends
+  that lane's pick through `Finish`, reporting its picks so far; a board-level throw reports all
+  open lanes. Setup gives every taken player a lane even if name/colour lookup fails.
+- `Confirm` swaps `pickrID`/`pickerType` around `ApplyCardStats.Pick`, so pick hooks that read the
+  picker from `CardChoice` (PickPhaseShenanigans, ModdingUtils `PickingPlayer`) see the lane.
+- First board of a session logs the other Harmony owners patching `CardChoice`/`ApplyCardStats`.
+
 ## Pure core (implemented, unit-tested)
 
 `src/Couch/` holds the parts with no Unity or game types, tested by `tests/CouchTests` (run by

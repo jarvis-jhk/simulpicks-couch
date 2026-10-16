@@ -18,5 +18,13 @@
 - A card that grants an extra pick: that player gets a second hand in their region.
 - Cards too small/large: Mod Options → EveryonePicks → Couch card size.
 
+- With your usual mod pack (ClassesManagerReborn, WillsWackyManagers, curses, Pick N Cards …):
+  play a few rounds. Card effects and class cards land on the right player? Nothing stuck?
+  The log line "Couch board: other mods hooking the pick: …" names the suspects.
+
+If a mod does not get along with couch mode, put its id from that log line into
+`Couch.SequentialWith` in `BepInEx/config/com.redredrain.rounds.simulpicks.cfg`; local players
+then take turns while it is loaded.
+
 If anything goes wrong, open an issue with `BepInEx/LogOutput.log`. To go back to taking turns,
 switch off "Players on this machine pick at once" in Mod Options.
