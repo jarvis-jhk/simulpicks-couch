@@ -27,6 +27,7 @@ jobs:
           plugin=$(grep -oP 'Version = "\K[0-9.]+' src/EveryonePicksPlugin.cs)
           echo "tag=$tag manifest=$manifest plugin=$plugin"
           test "$tag" = "$manifest" && test "$tag" = "$plugin"
+          python3 tools/ts-check.py
       - name: Package
         run: |
           v="${GITHUB_REF_NAME#v}"
@@ -44,3 +45,15 @@ jobs:
           cat docs/RELEASE-TEST.md >> out/notes.md
           gh release create "$GITHUB_REF_NAME" --prerelease --title "Couch picks $v" --notes-file out/notes.md \
             out/SimulPicksCouch-$v.zip out/EveryonePicks.dll out/SHA256SUMS
+      - name: Publish to Thunderstore
+        # Only once Jan has set up the Thunderstore team: secret THUNDERSTORE_TOKEN (service
+        # account) and variable THUNDERSTORE_TEAM (the team name, which is the namespace).
+        env:
+          TS_TOKEN: ${{ secrets.THUNDERSTORE_TOKEN }}
+          TS_TEAM: ${{ vars.THUNDERSTORE_TEAM }}
+        run: |
+          if [ -z "$TS_TOKEN" ] || [ -z "$TS_TEAM" ]; then
+            echo "::notice::THUNDERSTORE_TOKEN/THUNDERSTORE_TEAM not set, skipping Thunderstore"; exit 0
+          fi
+          dotnet tool install tcli --version 0.2.4 --tool-path out/tcli
+          out/tcli/tcli publish --token "$TS_TOKEN" --package-namespace "$TS_TEAM"

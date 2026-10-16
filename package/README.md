@@ -15,4 +15,4 @@ Settings in Mod Options.
 
 Not compatible with otDan-PickTimer.
 
-Bugs: https://github.com/RedRedRain/EveryonePicks/issues
+Upstream: https://github.com/RedRedRain/EveryonePicks

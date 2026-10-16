@@ -34,6 +34,9 @@ more local players owe a pick at the same time:
 
 ## M3 — release
 
+- Thunderstore: `thunderstore.toml` + `tools/ts-check.py`, tag workflow publishes once the
+  THUNDERSTORE_TOKEN secret / THUNDERSTORE_TEAM variable exist (needs Jan's Thunderstore team).
+
 - GitHub release with the DLL and a Thunderstore-ready zip; own package name so it does not
   collide with SimulPicks on Thunderstore. README with install steps for Windows and Deck.
 - Then the upstream issue "Couch mode: local players pick in parallel", and a PR if wanted.

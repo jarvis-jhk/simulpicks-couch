@@ -35,3 +35,6 @@ install-on-exit.ps1
 # Fetched dependencies and witnesses (tools/fetch-deps.sh) and local build output
 deps/
 build/
+
+# Release/tcli build output
+out/

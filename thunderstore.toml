@@ -1,0 +1,37 @@
+# Thunderstore publishing (tcli). package/manifest.json stays the source of the version, name,
+# description and dependencies; the Release workflow checks this file agrees with it.
+# The namespace is the Thunderstore team; the workflow overrides it from the repository variable
+# THUNDERSTORE_TEAM, and only publishes when the secret THUNDERSTORE_TOKEN is set.
+[config]
+schemaVersion = "0.0.1"
+
+[package]
+namespace = "jarvis_jhk"
+name = "SimulPicksCouch"
+versionNumber = "0.5.0"
+description = "SimulPicks with couch mode: several players on one PC or Steam Deck pick their cards at the same time, each with their own controller."
+websiteUrl = "https://github.com/jarvis-jhk/simulpicks-couch"
+containsNsfwContent = false
+[package.dependencies]
+BepInEx-BepInExPack_ROUNDS = "5.4.1901"
+willis81808-UnboundLib = "3.2.14"
+Pykess-ModdingUtils = "0.4.8"
+
+[build]
+icon = "./package/icon.png"
+readme = "./package/README.md"
+outdir = "./out/ts"
+
+[[build.copy]]
+source = "./package/CHANGELOG.md"
+target = "CHANGELOG.md"
+
+[[build.copy]]
+source = "./src/bin/Release/EveryonePicks.dll"
+target = "EveryonePicks.dll"
+
+[publish]
+repository = "https://thunderstore.io"
+communities = [ "rounds", ]
+[publish.categories]
+rounds = [ "gameplay", "utilities", "client-side", ]

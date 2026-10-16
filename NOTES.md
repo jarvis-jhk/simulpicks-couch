@@ -2,6 +2,25 @@
 
 Running state and evidence. Newest first.
 
+## 2026-10-16 — Thunderstore publishing prepared, waiting for a team token
+
+- Roadmap item rounds-thunderstore-release. Done when: SimulPicksCouch installable from
+  thunderstore.io / r2modman (ROUNDS community), published by the tag workflow.
+- `thunderstore.toml` (tcli 0.2.4; community rounds, categories gameplay/utilities/client-side).
+  `tools/ts-check.py` checks it against package/manifest.json plus Thunderstore's upload rules
+  (name, semver, description ≤250, dependency strings, 256×256 PNG); runs in the Release
+  workflow. Negative control: toml version 0.5.1 → exactly one version mismatch, FAIL.
+- Local `tcli build` of 0.5.0 gives icon/README/manifest/CHANGELOG/DLL; dependencies are the
+  same as upstream SimulPicks 0.3.36 on Thunderstore. `tcli publish` with a dummy token reaches
+  thunderstore.io and gets 401 "Invalid Service Account token" — the path works up to auth.
+- Release workflow: new last step publishes with tcli when secret THUNDERSTORE_TOKEN and variable
+  THUNDERSTORE_TEAM are set, otherwise skips with a notice. Not yet run in CI.
+- **Blocked on Jan:** a Thunderstore team (login via GitHub/Discord in a browser) and a service
+  account token for it. Also his call whether an untested build goes onto Thunderstore before his
+  game test. Package README "Bugs" line now points away from upstream's tracker.
+- Note: the package shares SimulPicks' plugin GUID (replaces it); Thunderstore cannot declare an
+  incompatibility, so the README's "disable SimulPicks" line is the only guard.
+
 ## 2026-10-16 — M2 mod-pack robustness, prerelease v0.5.0
 
 - Roadmap item rounds-mod-pack-robustness. Done when: prerelease where the board falls back to
