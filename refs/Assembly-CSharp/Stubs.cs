@@ -53,7 +53,22 @@ public class CharacterStatModifiers : MonoBehaviour
     public List<GameObject> objectsAddedToPlayer;
 }
 
-public class PlayerActions { }
+public class PlayerActions
+{
+    public PlayerAction Jump;
+    public PlayerTwoAxisAction Move;
+}
+
+public class MainCam : MonoBehaviour
+{
+    public static MainCam instance;
+    public Camera cam;
+}
+
+public class CardVisuals : MonoBehaviour
+{
+    public void ChangeSelected(bool setSelected) => throw null;
+}
 
 public class CharacterData : MonoBehaviour
 {

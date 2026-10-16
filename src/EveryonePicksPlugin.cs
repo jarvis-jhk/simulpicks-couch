@@ -22,7 +22,7 @@ namespace EveryonePicks
     {
         public const string ModId = "com.redredrain.rounds.simulpicks";
         public const string ModName = "EveryonePicks";
-        public const string Version = "0.3.37";
+        public const string Version = "0.4.0";
 
         public static EveryonePicksPlugin Instance;
 
@@ -34,6 +34,8 @@ namespace EveryonePicks
         public static ConfigEntry<bool> ShowWaitingText;
         public static ConfigEntry<float> RevealSeconds;
         public static ConfigEntry<float> RevealCardSize;
+        public static ConfigEntry<bool> CouchMode;
+        public static ConfigEntry<float> CouchCardScale;
 
         private void Awake()
         {
@@ -64,6 +66,14 @@ namespace EveryonePicks
 
             ShowProblems = Config.Bind("EveryonePicks", "ShowProblems", true,
                 "Show a message on screen when something goes wrong, instead of failing quietly.");
+
+            CouchMode = Config.Bind("Couch", "CouchMode", true,
+                "When two or more players on this machine owe a pick at the same time, they all pick " +
+                "at once, each in their own part of the screen with their own controller (stick or " +
+                "left/right to choose, jump to take the card). Off: they take turns as in SimulPicks.");
+
+            CouchCardScale = Config.Bind("Couch", "CouchCardScale", 1.0f,
+                "Size multiplier for the cards in couch mode. Raise it if they look too small.");
 
             new Harmony(ModId).PatchAll();
             PhotonNetwork.AddCallbackTarget(this);
@@ -145,6 +155,7 @@ namespace EveryonePicks
 
         private void OnGUI()
         {
+            CouchBoard.Draw();
             PickBoard.Draw();
             PickReveal.DrawLabels();
             Diagnostics.Draw();

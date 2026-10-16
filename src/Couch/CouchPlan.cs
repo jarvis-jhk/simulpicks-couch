@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace EveryonePicks.Couch
@@ -19,6 +20,24 @@ namespace EveryonePicks.Couch
         internal static bool Split(IList<int> queuedPlayers, IList<bool> isPlayerPicker, bool enabled,
                                    List<int> board, List<int> rest)
         {
+            var idx = new List<int>();
+            for (int i = 0; i < queuedPlayers.Count; i++) idx.Add(i);
+            var b = new List<int>();
+            var r = new List<int>();
+            bool any = Split(idx, i => queuedPlayers[i], i => isPlayerPicker[i], enabled, b, r);
+            board.Clear();
+            rest.Clear();
+            foreach (var i in b) board.Add(queuedPlayers[i]);
+            foreach (var i in r) rest.Add(queuedPlayers[i]);
+            return any;
+        }
+
+        /// <summary>
+        /// The same split over the queue's own entries, so the caller keeps each entry's picker type.
+        /// </summary>
+        internal static bool Split<T>(IList<T> queue, Func<T, int> player, Func<T, bool> isPlayerPicker,
+                                      bool enabled, List<T> board, List<T> rest)
+        {
             board.Clear();
             rest.Clear();
             var taken = new HashSet<int>();
@@ -26,19 +45,19 @@ namespace EveryonePicks.Couch
 
             if (enabled)
             {
-                for (int i = 0; i < queuedPlayers.Count && taken.Count < CouchLayout.MaxLanes; i++)
+                for (int i = 0; i < queue.Count && taken.Count < CouchLayout.MaxLanes; i++)
                 {
-                    if (!isPlayerPicker[i]) continue;
-                    if (taken.Add(queuedPlayers[i])) boardIdx.Add(i);
+                    if (!isPlayerPicker(queue[i])) continue;
+                    if (taken.Add(player(queue[i]))) boardIdx.Add(i);
                 }
             }
 
             if (taken.Count < 2) boardIdx.Clear();
 
-            for (int i = 0; i < queuedPlayers.Count; i++)
+            for (int i = 0; i < queue.Count; i++)
             {
-                if (boardIdx.Contains(i)) board.Add(queuedPlayers[i]);
-                else rest.Add(queuedPlayers[i]);
+                if (boardIdx.Contains(i)) board.Add(queue[i]);
+                else rest.Add(queue[i]);
             }
             return board.Count > 0;
         }

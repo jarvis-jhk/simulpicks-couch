@@ -1,3 +1,12 @@
+v0.4.0
+---
+
+- Couch mode: when two or more players on one machine owe a pick, they all pick at once. Each
+  gets their own part of the screen (two rows for two players, 2x2 for three or four) framed in
+  their colour, and chooses with their own controller: stick or left/right to move, jump to take
+  the card. On by default; `CouchMode` in the config switches back to taking turns.
+- Not yet tested in the game. Please report what goes wrong.
+
 v0.3.37
 ---
 

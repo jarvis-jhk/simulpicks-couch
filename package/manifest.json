@@ -1,8 +1,8 @@
 {
-    "name": "SimulPicks",
-    "version_number": "0.3.37",
-    "website_url": "https://github.com/RedRedRain/EveryonePicks",
-    "description": "Everyone picks their card at the same time instead of taking turns. Shows who has picked and who you're still waiting on.",
+    "name": "SimulPicksCouch",
+    "version_number": "0.4.0",
+    "website_url": "https://github.com/jarvis-jhk/simulpicks-couch",
+    "description": "SimulPicks with couch mode: several players on one PC or Steam Deck pick their cards at the same time, each with their own controller.",
     "dependencies": [
         "BepInEx-BepInExPack_ROUNDS-5.4.1901",
         "willis81808-UnboundLib-3.2.14",

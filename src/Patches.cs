@@ -85,7 +85,9 @@ namespace EveryonePicks
         private static void Prefix(ApplyCardStats __instance, int pickerID, ref bool ___done)
         {
             if (!State.localPickActive || ___done) return;
-            if (pickerID != State.currentSessionPlayer) return;
+            var into = CouchBoard.CaptureFor(pickerID)
+                       ?? (pickerID == State.currentSessionPlayer ? State.currentSessionPicks : null);
+            if (into == null) return;
 
             GameObject root;
             try { root = __instance.transform.root.gameObject; }
@@ -104,7 +106,7 @@ namespace EveryonePicks
                 name = source != null ? source.name : info.name.Replace("(Clone)", "");
             if (string.IsNullOrEmpty(name)) return;
 
-            State.currentSessionPicks.Add(new ResultEntry
+            into.Add(new ResultEntry
             {
                 card = name,
                 cursed = SoftPatches.IsCursed(root)

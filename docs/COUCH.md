@@ -1,6 +1,7 @@
 # Couch mode: design (M1)
 
-Status: design plus a unit-tested pure core (below). Nothing here has run in the game yet.
+Status: implemented (`src/CouchBoard.cs` on the pure core below), released as prerelease v0.4.0.
+Nothing here has run in the game yet; the hardware test is in NOTES.md.
 
 ## Where SimulPicks serialises local players
 
@@ -70,10 +71,40 @@ sequential runner. Logged as a fallback, not an error.
 Nothing changes on the wire. Each machine's board covers only its own local players; status,
 results and session-done broadcasts are per player exactly as today.
 
+## Runtime as built (v0.4.0)
+
+Where the implementation settled what the design above left open:
+
+- `State.RunnerLoop` asks `TakeCouchBoard` before each native session: `CouchPlan.Split` over the
+  queue entries; the board's players' first entries leave the queue, the rest keeps its order.
+  `CouchBoard.Ready()` (reflection targets, `CardChoice`, `MainCam`) failing keeps it native.
+- **One lane session per queue entry**, as the native runner does: each pick is its own
+  `ReportSession`. An extra pick (a new `DoPick` → `EnqueueLocalPick`) is taken off the queue by
+  the board while it runs and becomes a fresh hand in that player's region; one arriving after the
+  board ended is picked up by the runner as usual.
+- Spawning swaps `pickrID`, `pickerType` and `spawnedCards` (a list per lane) around each
+  `SpawnUniqueCard` call (reflection), positions through `MainCam.cam.ScreenToWorldPoint`, z = -5,
+  and multiplies the card's own scale by the layout scale × `CouchCardScale`.
+- Selection: `CardVisuals.ChangeSelected(bool)` per card (WillsWackyManagers calls it directly)
+  plus a colour bar under the selected card drawn in `OnGUI`, with the region frame, name and
+  countdown. No fill over the region, so cards keep their colours.
+- Confirm: `ApplyCardStats.Pick(playerID, false, Player)` on the chosen card (reflection), the
+  call vanilla `CardChoice.Pick` makes; `Patch_Pick_Capture` files it into the lane via
+  `CouchBoard.CaptureFor`. The other cards go at once, the picked one after 0.35 s, then report.
+  `CardChoice.IsPicking` stays false the whole time, so vanilla `Update` never reads input.
+- Input ignores the first 0.4 s of a hand (jump held over from play). Timeout = `PickSeconds` per
+  pick, then the selected card is taken.
+- Barrier cut: `FlushRunner` → `CouchBoard.Flush` reports each open lane's picks so far; hard
+  reset → `Abort`.
+- Game members it uses that refcheck proves: `PlayerActions.Jump/Move`, InControl
+  `OneAxisInputControl.WasPressed`, `TwoAxisInputControl.X`, `MainCam.instance/cam`,
+  `CardVisuals.ChangeSelected`. Reflection only (MMHOOK proves they exist, not that they are
+  public): `SpawnUniqueCard`, `ApplyCardStats.Pick`, `children`.
+
 ## Pure core (implemented, unit-tested)
 
 `src/Couch/` holds the parts with no Unity or game types, tested by `tests/CouchTests` (run by
-`tools/check.sh` and CI). Not wired into the pick flow yet.
+`tools/check.sh` and CI). Used by `src/CouchBoard.cs`.
 
 - `CouchLayout`: grid per lane count, lane regions in normalised screen space (row-major, player
   order), one centred card row per region with a name strip, and the scale relative to a

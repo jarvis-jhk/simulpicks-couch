@@ -28,6 +28,26 @@ namespace EveryonePicks
             MenuHandler.CreateText("Every player in the lobby needs this mod.", menu, out TextMeshProUGUI _, 22);
             Spacer(menu);
 
+            MenuHandler.CreateText("Couch", menu, out TextMeshProUGUI _, 26);
+
+            MenuHandler.CreateToggle(
+                EveryonePicksPlugin.CouchMode.Value,
+                "Players on this machine pick at once",
+                menu,
+                value => EveryonePicksPlugin.CouchMode.Value = value,
+                30);
+
+            MenuHandler.CreateSlider(
+                "Couch card size",
+                menu,
+                30,
+                0.3f, 2f,
+                EveryonePicksPlugin.CouchCardScale.Value,
+                value => EveryonePicksPlugin.CouchCardScale.Value = value,
+                out Slider _,
+                false);
+
+            Spacer(menu);
             MenuHandler.CreateText("Pick board", menu, out TextMeshProUGUI _, 26);
 
             MenuHandler.CreateToggle(

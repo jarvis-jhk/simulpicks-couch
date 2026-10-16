@@ -1,0 +1,46 @@
+name: Release
+
+# A pushed tag vX.Y.Z builds the same gate as Build (stubs + refcheck + couch tests), then
+# publishes the DLL and an r2modman/Thunderstore-style zip as a GitHub prerelease. Prerelease
+# because nothing built here has been in the game until Jan's hardware test says so (NOTES.md).
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Build and check references
+        run: tools/check.sh
+      - name: Versions agree
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          manifest=$(python3 -c 'import json;print(json.load(open("package/manifest.json"))["version_number"])')
+          plugin=$(grep -oP 'Version = "\K[0-9.]+' src/EveryonePicksPlugin.cs)
+          echo "tag=$tag manifest=$manifest plugin=$plugin"
+          test "$tag" = "$manifest" && test "$tag" = "$plugin"
+      - name: Package
+        run: |
+          v="${GITHUB_REF_NAME#v}"
+          mkdir -p out/stage
+          cp package/manifest.json package/icon.png package/README.md package/CHANGELOG.md src/bin/Release/EveryonePicks.dll out/stage/
+          (cd out/stage && zip -q "../SimulPicksCouch-$v.zip" *)
+          cp src/bin/Release/EveryonePicks.dll out/
+          sha256sum out/*.zip out/*.dll | tee out/SHA256SUMS
+      - name: Publish prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          v="${GITHUB_REF_NAME#v}"
+          awk -v v="v$v" '$0==v{f=1;next} f&&/^v[0-9]/{exit} f' package/CHANGELOG.md | sed '1,/^---$/d' > out/notes.md
+          cat docs/RELEASE-TEST.md >> out/notes.md
+          gh release create "$GITHUB_REF_NAME" --prerelease --title "Couch picks $v" --notes-file out/notes.md \
+            out/SimulPicksCouch-$v.zip out/EveryonePicks.dll out/SHA256SUMS

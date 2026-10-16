@@ -1,8 +1,20 @@
 # EveryonePicks — couch fork
 
 > This fork adds **couch mode**: several players on one PC or Steam Deck pick their cards at the
-> same time, each on their own part of the screen. Work in progress, see [ROADMAP.md](ROADMAP.md).
+> same time, each on their own part of the screen with their own controller. Prereleases are on
+> the [releases page](../../releases) with install and test steps; see [ROADMAP.md](ROADMAP.md).
 > The original mod is [RedRedRain/EveryonePicks](https://github.com/RedRedRain/EveryonePicks).
+
+## Couch mode
+
+When two or more players on this machine owe a pick at the same time, a couch board replaces the
+one-at-a-time pick: two players get a row each, three or four a quarter of the screen, framed in
+their colour with their name and a countdown. Each chooses with their own controller (stick or
+left/right, jump to take the card). Cards are rolled for that player, so class and rarity rules
+apply as in a normal pick, and results go through SimulPicks' usual sync, so online lobbies mixing
+couch and single players work the same way. One local player keeps the normal pick unchanged.
+Config `Couch.CouchMode` (Mod Options: "Players on this machine pick at once") switches it off;
+`CouchCardScale` sizes the cards. Not yet tested in the game: see [NOTES.md](NOTES.md).
 
 A ROUNDS mod. Everyone picks their card at the same time instead of taking turns.
 

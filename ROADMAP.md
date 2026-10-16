@@ -7,7 +7,7 @@
 - GitHub Actions: Release + Debug build, refcheck, DLL artifact.
 - Open: one authoritative `tools/check.sh <Managed dir>` run against a real ROUNDS install.
 
-## M1 — 2×2 couch prototype
+## M1 — 2×2 couch prototype — built, prerelease v0.4.0 (2026-10-16), awaiting Jan's game test
 
 Design in `docs/COUCH.md`. A local pick board replaces the sequential `RunnerLoop` when two or
 more local players owe a pick at the same time:

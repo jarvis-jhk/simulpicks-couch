@@ -120,6 +120,13 @@ internal static class Program
         var ten = Enumerable.Range(0, 10).ToArray();
         Check(Run(ten, All(10)) && board.Count == CouchLayout.MaxLanes && rest.SequenceEqual(new[] { 9 }), "overflow beyond nine waits");
         Check(!Run(new int[0], new bool[0]) && rest.Count == 0, "empty queue");
+
+        // The runner splits its queue entries directly, keeping each entry's picker type and order.
+        var q = new List<KeyValuePair<int, string>> { new(0, "P"), new(7, "T"), new(1, "P"), new(0, "P") };
+        var eb = new List<KeyValuePair<int, string>>(); var er = new List<KeyValuePair<int, string>>();
+        Check(CouchPlan.Split(q, e => e.Key, e => e.Value == "P", true, eb, er)
+              && eb.SequenceEqual(new[] { q[0], q[2] }) && er.SequenceEqual(new[] { q[1], q[3] }),
+              "entries split with their picker type, rest in queue order");
     }
 
     private static void Cursor()

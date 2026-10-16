@@ -2,6 +2,28 @@
 
 Running state and evidence. Newest first.
 
+## 2026-10-16 — M1 couch pick board built, prerelease v0.4.0
+
+- `src/CouchBoard.cs` wires the couch core into the pick flow (details: docs/COUCH.md "Runtime
+  as built"). Config `Couch.CouchMode` default on, `CouchCardScale`; both in Mod Options.
+- New stub members all witnessed: refcheck Release 92/92, 0 attested, 0 unproven (local).
+  Negative control: `X` declared on `PlayerTwoAxisAction` instead of `TwoAxisInputControl`
+  → refcheck reports exactly that member UNPROVEN; restored. `refcheck --dump <dll>` added to
+  list what a witness references (how the new members were found).
+- Couch tests 656/0 locally (new: queue entries split with their picker type).
+- Version 0.4.0, same plugin GUID as SimulPicks (replaces it; online handshake will call out a
+  mixed lobby against 0.3.37). Thunderstore name SimulPicksCouch. Release workflow
+  `.github/workflows/release.yml`: a `v*` tag runs check.sh, checks tag = manifest = plugin
+  version, and publishes a GitHub prerelease with the zip, DLL, SHA256SUMS and docs/RELEASE-TEST.md.
+- **Open, Jan's hardware test** (docs/RELEASE-TEST.md): 2–4 controllers in an offline local match.
+  Unknowns only the game answers: card scale/position at 2×2, whether `ApplyCardStats.Pick`
+  applies outside a native session, card face/flip state after `SpawnUniqueCard`, Jump as
+  confirm. Nothing here has been in the game.
+- Fault relay (M2) still missing: the report URL is secret and this repo is public, so it needs a
+  public relay (like furries' ntfy bridge) first.
+- Working rule since 2026-10-16: heavy builds/tests go to the 🔬 re lane; here one incremental
+  build + one focused test, GitHub CI is the full gate.
+
 ## 2026-10-15 — M1 slice 1: couch core + mod-source research
 
 - `src/Couch/` (CouchLayout, CouchPlan, LaneCursor): pure logic, no Unity types, not wired into

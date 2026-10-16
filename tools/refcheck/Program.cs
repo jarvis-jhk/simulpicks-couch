@@ -5,6 +5,7 @@
 // metadata and checks every type and member it references in a stubbed assembly:
 //
 //   refcheck <mod.dll> --witness <dll>... [--attested <file>] [--real <Managed dir>]
+//   refcheck --dump <dll>      every stubbed-assembly reference a witness makes, to find proof
 //
 // Witnesses are assemblies compiled against the REAL game: MMHOOK.Rounds (a hook delegate for
 // every Assembly-CSharp method, with its exact signature) and mods such as UnboundLib, whose own
@@ -30,6 +31,7 @@ static class P
             if (args[i] == "--witness") { while (i + 1 < args.Length && !args[i + 1].StartsWith("--")) witnesses.Add(args[++i]); }
             else if (args[i] == "--attested") attestedFile = args[++i];
             else if (args[i] == "--real") real = args[++i];
+            else if (args[i] == "--dump") { foreach (var r in Refs(args[++i]).Distinct()) Console.WriteLine(r.Key); return 0; }
             else mod = args[i];
         }
         if (mod == null) { Console.Error.WriteLine("usage: refcheck <mod.dll> --witness <dll>... [--attested <file>] [--real <dir>]"); return 2; }

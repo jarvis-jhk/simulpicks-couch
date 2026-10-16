@@ -156,9 +156,9 @@ namespace EveryonePicks
         // the AccessTools warning storm in the logs.
         private static readonly FieldInfo F_picks = AccessTools.Field(typeof(CardChoice), "picks");
         private static readonly FieldInfo F_isPlaying = AccessTools.Field(typeof(CardChoice), "isPlaying");
-        private static readonly FieldInfo F_pickrID = AccessTools.Field(typeof(CardChoice), "pickrID");
-        private static readonly FieldInfo F_pickerType = AccessTools.Field(typeof(CardChoice), "pickerType");
-        private static readonly FieldInfo F_spawnedCards = AccessTools.Field(typeof(CardChoice), "spawnedCards");
+        internal static readonly FieldInfo F_pickrID = AccessTools.Field(typeof(CardChoice), "pickrID");
+        internal static readonly FieldInfo F_pickerType = AccessTools.Field(typeof(CardChoice), "pickerType");
+        internal static readonly FieldInfo F_spawnedCards = AccessTools.Field(typeof(CardChoice), "spawnedCards");
         private static readonly FieldInfo F_selected = AccessTools.Field(typeof(CardChoice), "currentlySelectedCard");
 
         internal static IEnumerator OnGameStart()
@@ -466,7 +466,7 @@ namespace EveryonePicks
             }
         }
 
-        private static void BroadcastStatus(int token, int playerID, int remaining, bool done)
+        internal static void BroadcastStatus(int token, int playerID, int remaining, bool done)
         {
             try { Broadcast("RPCA_SimulStatus", token, playerID, remaining, done, PickSeconds); }
             catch (Exception e) { EveryonePicksPlugin.Warn("Status broadcast failed: " + e.Message); }
@@ -609,6 +609,12 @@ namespace EveryonePicks
             {
                 while (localQueue.Count > 0)
                 {
+                    var couch = TakeCouchBoard();
+                    if (couch != null)
+                    {
+                        yield return CouchBoard.Run(couch);
+                        continue;
+                    }
                     var kv = localQueue.Dequeue();
                     yield return RunLocalNativePick(kv.Key, kv.Value);
                 }
@@ -618,6 +624,26 @@ namespace EveryonePicks
                 localRunnerBusy = false;
                 runner = null;
             }
+        }
+
+        /// <summary>
+        /// Couch mode: when two or more local players are queued, take one entry each off the queue
+        /// for the couch board; the rest keeps its order. Null keeps the native one-at-a-time flow.
+        /// </summary>
+        private static List<int> TakeCouchBoard()
+        {
+            if (!EveryonePicksPlugin.CouchMode.Value || localQueue.Count < 2) return null;
+            var all = new List<KeyValuePair<int, PickerType>>(localQueue);
+            var board = new List<KeyValuePair<int, PickerType>>();
+            var rest = new List<KeyValuePair<int, PickerType>>();
+            if (!Couch.CouchPlan.Split(all, e => e.Key, e => e.Value == PickerType.Player, true, board, rest)) return null;
+            if (!CouchBoard.Ready()) return null;
+
+            localQueue.Clear();
+            foreach (var kv in rest) localQueue.Enqueue(kv);
+            var players = new List<int>();
+            foreach (var kv in board) players.Add(kv.Key);
+            return players;
         }
 
         private static int SafePicks(CardChoice c)
@@ -778,6 +804,7 @@ namespace EveryonePicks
             int stillQueued = 0;
             foreach (var kv in localQueue) if (kv.Key == playerID) stillQueued++;
             if (localPickActive && currentSessionPlayer == playerID) stillQueued++;
+            if (CouchBoard.InSession(playerID)) stillQueued++;
 
             BroadcastStatus(token, playerID, stillQueued, stillQueued == 0);
         }
@@ -875,6 +902,12 @@ namespace EveryonePicks
                 localPickActive = true;
                 try { ScrubCardChoice(choice); }
                 finally { localPickActive = prev; }
+            }
+
+            if (CouchBoard.Active)
+            {
+                CouchBoard.Flush(token);
+                localPickActive = false;
             }
 
             if (localPickActive)
@@ -1250,6 +1283,7 @@ namespace EveryonePicks
                 finally { localPickActive = prev; }
             }
 
+            CouchBoard.Abort();
             CleanupLocalCards();
             PickReveal.Cleanup();
             WaitingBanner.ForceHide();
