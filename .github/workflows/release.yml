@@ -34,7 +34,7 @@ jobs:
           cp package/manifest.json package/icon.png package/README.md package/CHANGELOG.md src/bin/Release/EveryonePicks.dll out/stage/
           (cd out/stage && zip -q "../SimulPicksCouch-$v.zip" *)
           cp src/bin/Release/EveryonePicks.dll out/
-          sha256sum out/*.zip out/*.dll | tee out/SHA256SUMS
+          (cd out && sha256sum *.zip *.dll | tee SHA256SUMS)
       - name: Publish prerelease
         env:
           GH_TOKEN: ${{ github.token }}

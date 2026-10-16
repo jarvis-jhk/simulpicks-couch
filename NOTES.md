@@ -2,6 +2,24 @@
 
 Running state and evidence. Newest first.
 
+## 2026-10-16 — M2 mod-pack robustness, prerelease v0.5.0
+
+- Roadmap item rounds-mod-pack-robustness. Done when: prerelease where the board falls back to
+  taking turns (logged) when a mod opens its own pick or is listed in `Couch.SequentialWith`, a
+  throwing mod hook never sticks the phase, and pick hooks see the right picker. Details in
+  docs/COUCH.md "Mod packs (v0.5.0)".
+- New pure `src/Couch/ModGate.cs` (list parse, exact case-insensitive match). Tests 662/0 locally;
+  negative control (prefix match instead of exact) fails exactly "no prefix match"; restored.
+  Release build + refcheck Release 92/92 locally (no new stub members).
+- CI Build run 38881316894 on 378d013 green: log shows HEAD 378d013, tests 662/0, refcheck
+  Release 92/92, Debug 93/93. Release run 38881477665 published prerelease v0.5.0; downloaded
+  zip/DLL match SHA256SUMS, zip manifest 0.5.0.
+  https://github.com/jarvis-jhk/simulpicks-couch/releases/tag/v0.5.0
+- SHA256SUMS of v0.4.0/v0.5.0 list `out/…` paths (sha256sum -c fails from a download folder);
+  workflow now hashes inside out/ for the next release.
+- Not covered: per-mod hardware tests with ClassesManagerReborn/WWM/NullManager/RWF packs and
+  online+couch mixes — Jan's test (docs/RELEASE-TEST.md); fault relay still needs a public relay.
+
 ## 2026-10-16 — M1 couch pick board built, prerelease v0.4.0
 
 - `src/CouchBoard.cs` wires the couch core into the pick flow (details: docs/COUCH.md "Runtime
