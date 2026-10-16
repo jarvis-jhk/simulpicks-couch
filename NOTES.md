@@ -10,7 +10,8 @@ Running state and evidence. Newest first.
   Negative control: `X` declared on `PlayerTwoAxisAction` instead of `TwoAxisInputControl`
   → refcheck reports exactly that member UNPROVEN; restored. `refcheck --dump <dll>` added to
   list what a witness references (how the new members were found).
-- Couch tests 656/0 locally (new: queue entries split with their picker type).
+- Couch tests 656/0 locally (new: queue entries split with their picker type). CI run
+  38878024788 on cb28c93 green: tests 656/0, refcheck Release 92/92, Debug 93/93 (log checked).
 - Version 0.4.0, same plugin GUID as SimulPicks (replaces it; online handshake will call out a
   mixed lobby against 0.3.37). Thunderstore name SimulPicksCouch. Release workflow
   `.github/workflows/release.yml`: a `v*` tag runs check.sh, checks tag = manifest = plugin

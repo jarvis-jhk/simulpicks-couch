@@ -392,8 +392,8 @@ namespace EveryonePicks
                 var labelRect = new Rect(r.x + strip * 0.4f, r.y + t, r.width - strip * 0.8f, strip - t);
                 GUI.Label(labelRect, l.name, nameStyle);
 
-                string info = !l.inSession ? "✓"
-                            : l.picked ? "✓"
+                // Plain text: the default IMGUI font has no check mark glyph.
+                string info = !l.inSession || l.picked ? "picked"
                             : Mathf.CeilToInt(Mathf.Max(0f, l.deadline - now)) + "s";
                 infoStyle.normal.textColor = l.inSession && !l.picked && l.deadline - now < 10f
                     ? new Color(1f, 0.45f, 0.4f) : Color.white;
