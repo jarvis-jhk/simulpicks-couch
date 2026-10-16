@@ -16,6 +16,10 @@ Running state and evidence. Newest first.
   mixed lobby against 0.3.37). Thunderstore name SimulPicksCouch. Release workflow
   `.github/workflows/release.yml`: a `v*` tag runs check.sh, checks tag = manifest = plugin
   version, and publishes a GitHub prerelease with the zip, DLL, SHA256SUMS and docs/RELEASE-TEST.md.
+- Prerelease v0.4.0 published 2026-10-16 from tag on 8abc671 by Release run 38878352594 (check.sh
+  green in it); downloaded zip/DLL match SHA256SUMS, zip holds manifest 0.4.0 + DLL. Notes text
+  fixed by hand afterwards (sed range ate the changelog part; workflow fixed).
+  https://github.com/jarvis-jhk/simulpicks-couch/releases/tag/v0.4.0
 - **Open, Jan's hardware test** (docs/RELEASE-TEST.md): 2–4 controllers in an offline local match.
   Unknowns only the game answers: card scale/position at 2×2, whether `ApplyCardStats.Pick`
   applies outside a native session, card face/flip state after `SpawnUniqueCard`, Jump as

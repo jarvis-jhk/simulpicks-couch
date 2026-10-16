@@ -40,7 +40,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           v="${GITHUB_REF_NAME#v}"
-          awk -v v="v$v" '$0==v{f=1;next} f&&/^v[0-9]/{exit} f' package/CHANGELOG.md | sed '1,/^---$/d' > out/notes.md
+          awk -v v="v$v" '$0==v{f=1;next} f&&/^v[0-9]/{exit} f' package/CHANGELOG.md | sed '1{/^---$/d}' > out/notes.md
           cat docs/RELEASE-TEST.md >> out/notes.md
           gh release create "$GITHUB_REF_NAME" --prerelease --title "Couch picks $v" --notes-file out/notes.md \
             out/SimulPicksCouch-$v.zip out/EveryonePicks.dll out/SHA256SUMS
